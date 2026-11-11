@@ -38,7 +38,7 @@ def descritivas(pessoa, banco, n_cameras):
     num = propria.numero if propria else banco.total_pessoas()
     out = [
         (f"Pessoa {num:03d}. Registrada às {_hora(propria.inicio if propria else time.time())}.", "sistema"),
-        (f"Você está a {pessoa['z']:.0f} cm da tela.", "sistema"),
+        (f"Você está a {pessoa.get('dist', pessoa['z']):.0f} cm da tela.", "sistema"),
         (f"Altura dos olhos: {pessoa['y']:.0f} cm.", "sistema"),
         (f"Em frente às câmeras há {pessoa['segundos']:.0f} segundos.", "sistema"),
         (f"{n_cameras} câmeras estão olhando para você agora.", "sistema"),

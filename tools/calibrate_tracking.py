@@ -6,8 +6,16 @@ quem observa, y para cima, z para a frente (na direção da pessoa).
 Marque no chão, com fita, dois pontos bem na frente do centro da TV 32":
 a 100 cm e a 200 cm da tela.
 
-Uso:
-    python tools/calibrate_tracking.py --olhos 160
+ILHA (desde 11/11): calibre um lado por vez. Marque com fita, no chão do lado
+escolhido, dois pontos em linha reta saindo do meio da mesa: a 60 cm e a 150 cm
+da BORDA da mesa (mude com --marcas). Fique nas marcas olhando para as telas
+daquele lado. Só as câmeras de tracking que olham para esse lado são calibradas.
+    python tools/calibrate_tracking.py --lado esq --olhos 160
+    python tools/calibrate_tracking.py --lado dir --olhos 160
+As posições das câmeras vêm de config/ilha.json (tools/configurar_ilha.py).
+
+Uso (montagem em U, antiga):
+    python tools/calibrate_tracking.py --perfil casa --olhos 160
         --olhos = altura dos olhos de quem vai ficar nas marcas, em cm
     python tools/calibrate_tracking.py --olhos 160 --marcas 100 200 --x 0
 
@@ -74,7 +82,7 @@ def resolver(mod, medidas, pontos):
         return e
 
     melhor = (1e9, 0, 0)
-    for yaw in np.arange(-90, 90.1, 2):
+    for yaw in np.arange(-180, 180.1, 2):
         for pitch in np.arange(-45, 60.1, 2):
             e = erro(yaw, pitch)
             if e < melhor[0]:
@@ -92,18 +100,28 @@ def resolver(mod, medidas, pontos):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--perfil", default="casa")
+    ap.add_argument("--perfil", default="ilha")
+    ap.add_argument("--lado", choices=["esq", "dir"], help="ilha: qual lado calibrar")
     ap.add_argument("--olhos", type=float, required=True, help="altura dos olhos de quem calibra, cm")
-    ap.add_argument("--marcas", type=float, nargs=2, default=[100, 200])
-    ap.add_argument("--x", type=float, default=0.0, help="x das marcas (0 = centro da TV 32)")
+    ap.add_argument("--marcas", type=float, nargs=2, default=None,
+                    help="distâncias das marcas (ilha: da borda da mesa, padrão 60 150; U: da TV, padrão 100 200)")
+    ap.add_argument("--x", type=float, default=0.0, help="U: x das marcas (0 = centro da TV 32)")
+    ap.add_argument("--z", type=float, default=0.0, help="ilha: posição das marcas ao longo da mesa (0 = meio)")
     a = ap.parse_args()
 
     cfg = config.carregar(a.perfil)
+    il = cfg.get("ilha")
+    if il is not None and not a.lado:
+        ap.error("na ilha, diga qual lado: --lado esq ou --lado dir")
+    a.marcas = a.marcas or ([60, 150] if il is not None else [100, 200])
     entradas = {c["nome"]: c for c in cfg["cameras"]["cameras"]}
     cap = Captura(cfg)
     masters = cap.por_papel("master")
+    if il is not None:
+        do_lado = {m["nome"] for m in il.masters if m["olha"] == a.lado}
+        masters = [m for m in masters if m.nome in do_lado]
     if not masters:
-        print("Nenhuma câmera com papel master em cameras.json.")
+        print("Nenhuma câmera de tracking (papel master) para calibrar em cameras.json.")
         return
     for m in masters:
         e = entradas[m.nome]
@@ -114,7 +132,11 @@ def main():
     cap.rodizios = []
     cap.iniciar()
     tracker = Tracker(cfg, masters)
-    pontos = [np.array([a.x, a.olhos, a.marcas[0]]), np.array([a.x, a.olhos, a.marcas[1]])]
+    if il is not None:
+        s = -1 if a.lado == "esq" else 1
+        pontos = [np.array([s * (il.meia + d), a.olhos, a.z]) for d in a.marcas]
+    else:
+        pontos = [np.array([a.x, a.olhos, a.marcas[0]]), np.array([a.x, a.olhos, a.marcas[1]])]
     medidas = {1: None, 2: None}
     resultado = {}
     cv2.namedWindow("calibrar tracking", cv2.WINDOW_NORMAL)
@@ -149,7 +171,7 @@ def main():
                 medidas[i] = coletar(tracker, masters)
                 faltou = [n for n, v in medidas[i].items() if v is None]
                 if faltou:
-                    print(f"  sem rosto em: {', '.join(faltou)}. Olhe para a TV central e repita.")
+                    print(f"  sem rosto em: {', '.join(faltou)}. Olhe para as telas e repita.")
                 if medidas[1] and medidas[2]:
                     resultado = {}
                     for m in masters:
@@ -161,7 +183,7 @@ def main():
                         print(f"  {m.nome}: k_face={kf:.0f}  yaw={yaw}  pitch={pitch}  erro={err:.1f} graus")
             elif k == ord("s"):
                 for nome, (kf, yaw, pitch, err) in resultado.items():
-                    entradas[nome].update({"k_face": round(kf, 1), "yaw": yaw, "pitch": pitch})
+                    entradas[nome].update({"k_face": round(kf, 1), "yaw": yaw, "pitch": pitch, "calibrado": True})
                 config.salvar_cameras(cfg)
                 print(f"Salvo em {cfg['cameras_path']}")
                 break

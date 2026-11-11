@@ -13,6 +13,10 @@ docs/render_real.png
 OBSERVACAO_notebook.zip
 *.bak.json
 _resultado/
+config/ilha_mapa.png
 
 # configurações locais do Claude Code
 .claude/
+docs/maquete/render_*.png
+docs/maquete/*.blend
+docs/maquete/*.blend1

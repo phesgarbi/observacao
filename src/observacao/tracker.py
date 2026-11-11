@@ -80,11 +80,12 @@ class ModeloCamera:
 
 # ---------------------------------------------------------------- detecção
 class Deteccao:
-    __slots__ = ("cam", "caixa", "olhos_px", "largura_px", "conf", "p", "dist")
+    __slots__ = ("cam", "caixa", "olhos_px", "largura_px", "conf", "p", "dist", "frame")
 
-    def __init__(self, cam, caixa, olhos_px, largura_px, conf, p, dist):
+    def __init__(self, cam, caixa, olhos_px, largura_px, conf, p, dist, frame=None):
         self.cam, self.caixa, self.olhos_px = cam, caixa, olhos_px
         self.largura_px, self.conf, self.p, self.dist = largura_px, conf, p, dist
+        self.frame = frame          # quadro de onde saiu (para recortar o rosto: analise.py)
 
 
 class FiltroEstatico:
@@ -136,6 +137,7 @@ class Pessoa:
         self.t_vista = agora
         self.confirmada = False
         self.cams = set()
+        self.det = None             # melhor detecção recente (maior rosto entre as câmeras)
 
     @property
     def idade(self):
@@ -195,6 +197,15 @@ class Tracker:
             ps = [p.como_dict() for p in self.pessoas if p.confirmada]
         return sorted(ps, key=lambda d: d["z"])
 
+    def rosto(self, pid):
+        """Melhor visão recente do rosto da pessoa: {frame, caixa, cam} ou None (usado por analise.py)."""
+        with self._lock:
+            p = next((q for q in self.pessoas if q.id == pid), None)
+            d = p.det if p is not None else None
+            if d is None or d.frame is None:
+                return None
+            return {"frame": d.frame, "caixa": d.caixa, "cam": d.cam}
+
     def todas(self):
         with self._lock:
             return [p.como_dict() for p in self.pessoas]
@@ -216,7 +227,7 @@ class Tracker:
             meio = (olho_a + olho_b) / 2
             p, dist = mod.ponto(float(meio[0]), float(meio[1]), float(ww))
             d = Deteccao(nome, (int(x), int(y), int(ww), int(hh)), (float(meio[0]), float(meio[1])),
-                         float(ww), float(fc[14]), p, dist)
+                         float(ww), float(fc[14]), p, dist, f)
             if not (self.dmin <= dist <= self.dmax):
                 ruins.append(d)
                 continue
@@ -231,8 +242,8 @@ class Tracker:
         for d in sorted(deteccoes, key=lambda d: -d.largura_px):
             g = next((g for g in grupos if np.linalg.norm(g["p"] - d.p) < self.raio_mesma
                       and d.cam not in g["cams"]), None)
-            if g is None:
-                grupos.append({"p": d.p.copy(), "peso": d.largura_px, "cams": {d.cam}})
+            if g is None:     # a primeira do grupo é a de maior rosto (ordem acima)
+                grupos.append({"p": d.p.copy(), "peso": d.largura_px, "cams": {d.cam}, "melhor": d})
             else:
                 tot = g["peso"] + d.largura_px
                 g["p"] = (g["p"] * g["peso"] + d.p * d.largura_px) / tot
@@ -251,10 +262,12 @@ class Tracker:
             if melhor is not None:
                 melhor.atualizar(g["p"], agora, self.alfa)
                 melhor.cams = g["cams"]
+                melhor.det = g["melhor"]
                 livres.remove(melhor)
             elif len(self.pessoas) < self.max_pessoas + 2:   # folga para candidatas
                 np_ = Pessoa(g["p"], agora)
                 np_.cams = g["cams"]
+                np_.det = g["melhor"]
                 self.pessoas.append(np_)
         for p in self.pessoas:
             if not p.confirmada and p.idade >= self.entrar_s:

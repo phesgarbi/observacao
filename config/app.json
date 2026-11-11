@@ -23,10 +23,13 @@
     }
   },
   "analise": {
+    "_doc": "Palpites da ficha (src/observacao/analise.py). Só em memória, somem 60 s depois de a pessoa sair. Modelos em models/.",
     "intervalo_s": 4.0,
     "idade": true,
     "emocao": true,
-    "altura": true
+    "altura": true,
+    "peso": true,
+    "roupa": true
   },
   "banco": {
     "_doc": "Sessões: um quadro de cada câmera a cada intervalo_s enquanto a pessoa está na frente. Fica só neste PC; apagar a pasta bank/ limpa tudo.",

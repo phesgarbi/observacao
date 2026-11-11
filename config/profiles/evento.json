@@ -1,1 +1,5 @@
-{"_doc": "Perfil do dia da festa. Recalibrar telas e masters no local (docs/montagem.md).", "screens": "config/screens_evento.json", "cameras": "config/cameras_evento.json", "janelas_borda": false, "render": {"mostrar_fps": false}}
+{"_doc": "Perfil do dia da festa (ilha). Medir no local e rodar tools/configurar_ilha.py; depois calibrate_tracking.py para refinar as câmeras M1-M4.",
+ "ilha": "config/ilha.json",
+ "cameras": "config/cameras.json",
+ "janelas_borda": false,
+ "app": {"tracking": {"distancia_max_cm": 450, "max_pessoas": 12}, "render": {"mostrar_fps": false}}}

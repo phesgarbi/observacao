@@ -1,0 +1,4 @@
+{"_doc": "Montagem em ilha (desde 11/11): telas e câmeras de tracking saem das medidas de config/ilha.json (edite com tools/configurar_ilha.py). O tracking vai mais longe e acompanha mais gente porque o público circula pelas laterais.",
+ "ilha": "config/ilha.json",
+ "cameras": "config/cameras.json",
+ "app": {"tracking": {"distancia_max_cm": 450, "max_pessoas": 12}}}

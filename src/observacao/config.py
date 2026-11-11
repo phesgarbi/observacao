@@ -20,15 +20,27 @@ def _mesclar(base, extra):
     return base
 
 
-def carregar(perfil="casa"):
+def carregar(perfil="ilha"):
+    """Perfis com a chave "ilha" (montagem em ilha, desde 11/11) geram telas e
+    posição das câmeras de tracking a partir das medidas de config/ilha.json.
+    Perfis antigos (U) continuam lendo screens.json."""
     app = _ler(CONFIG / "app.json")
     p = CONFIG / "profiles" / f"{perfil}.json"
     prof = _ler(p) if p.exists() else {}
     _mesclar(app, prof.get("app", {}))
-    telas = _ler(RAIZ / prof.get("screens", "config/screens.json"))
     cam_path = RAIZ / prof.get("cameras", "config/cameras.json")
     cams = _ler(cam_path) if cam_path.exists() else {"cameras": []}
-    return {"perfil": perfil, "app": app, "telas": telas, "cameras": cams, "cameras_path": cam_path}
+    cfg = {"perfil": perfil, "app": app, "cameras": cams, "cameras_path": cam_path, "ilha": None}
+    if prof.get("ilha"):
+        from . import ilha
+        il = ilha.Ilha(ilha.carregar(RAIZ / prof["ilha"]))
+        il.aplicar_em_cameras(cams)
+        cfg["ilha"] = il
+        cfg["ilha_path"] = RAIZ / prof["ilha"]
+        cfg["telas"] = {"telas": il.telas}
+    else:
+        cfg["telas"] = _ler(RAIZ / prof.get("screens", "config/screens.json"))
+    return cfg
 
 
 def salvar_cameras(cfg):

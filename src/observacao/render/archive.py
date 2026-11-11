@@ -149,3 +149,49 @@ class Mural:
         gl.glDrawArrays(gl.GL_TRIANGLES, 0, 6)
         gl.glBindVertexArray(0)
         self.prog.stop()
+
+
+class GradeAoVivo(Mural):
+    """Telas de um lado sem dono: parede de monitores de segurança, uma câmera por célula, ao vivo.
+
+    Decisão de 11/11 (Gui): de longe o público se vê na grade; quando alguém cruza
+    a fita, aquele lado deixa a grade e vira a janela 3D para essa pessoa.
+    Câmeras de foto (rodízio) aparecem com a última foto tirada.
+    """
+
+    def __init__(self, cameras, intervalo=0.2, celula=200):
+        super().__init__(None, cameras)
+        self.intervalo, self.celula = intervalo, celula
+        self.t_vivo = 0.0
+
+    def _encher(self, g):
+        n = len(self.cameras)
+        agora = time.strftime("%H:%M:%S")
+        for i in range(g.cols * g.rows):
+            if not n:
+                return
+            c = self.cameras[i % n]
+            f = c.quadro()[0]
+            if f is not None:
+                g.celula(i, f, f"{c.nome} {agora}")
+                r, k = divmod(i, g.cols)                      # bolinha vermelha de REC no canto da célula
+                if r < g.rows:
+                    cv2.circle(g.img, (k * g.cw + 9, r * g.ch + 9), 4, (40, 40, 230), -1, cv2.LINE_AA)
+
+    def _grade(self, tid, w, h):
+        g = self.grades.get(tid)
+        if g is None or g.tamanho != (w, h):
+            if g is not None:
+                gl.glDeleteTextures(1, ctypes.byref(g.tex))
+            g = self.grades[tid] = Grade(w, h, alvo_celula=self.celula)
+            g.tamanho = (w, h)
+            self._encher(g)
+        return g
+
+    def atualizar(self, dt):
+        self.tempo += dt
+        self.t_vivo += dt
+        if self.t_vivo >= self.intervalo:
+            self.t_vivo = 0.0
+            for g in self.grades.values():
+                self._encher(g)

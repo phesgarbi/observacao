@@ -1,0 +1,153 @@
+{
+  "_doc": "Medidas da montagem em ilha, em cm. Edite com tools/configurar_ilha.py (pergunta uma a uma, Enter mantém). Referencial: origem no chão no centro da mesa; x para a direita de quem chega pela frente; z para a frente (entrada).",
+  "mesa": {
+    "comprimento_cm": 120,
+    "largura_cm": 60,
+    "altura_cm": 75
+  },
+  "telas": [
+    {
+      "id": "tubo_esq",
+      "lado": "esq",
+      "tipo": "crt",
+      "largura_cm": 36,
+      "altura_cm": 27,
+      "ao_longo_cm": 90,
+      "recuo_cm": 0,
+      "centro_altura_cm": 97,
+      "inclinacao": 0,
+      "janela": {
+        "x": 4920,
+        "y": 0,
+        "w": 960,
+        "h": 540
+      },
+      "via_videowall": "A"
+    },
+    {
+      "id": "esq_21",
+      "lado": "esq",
+      "tipo": "monitor",
+      "largura_cm": 47,
+      "altura_cm": 27,
+      "ao_longo_cm": 35,
+      "recuo_cm": 4,
+      "centro_altura_cm": 105,
+      "inclinacao": 0,
+      "janela": {
+        "x": 1080,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      }
+    },
+    {
+      "id": "tubo_dir",
+      "lado": "dir",
+      "tipo": "crt",
+      "largura_cm": 36,
+      "altura_cm": 27,
+      "ao_longo_cm": 90,
+      "recuo_cm": 0,
+      "centro_altura_cm": 97,
+      "inclinacao": 0,
+      "janela": {
+        "x": 5880,
+        "y": 0,
+        "w": 960,
+        "h": 540
+      },
+      "via_videowall": "B"
+    },
+    {
+      "id": "dir_21_touch",
+      "lado": "dir",
+      "tipo": "monitor",
+      "touch": true,
+      "largura_cm": 47,
+      "altura_cm": 27,
+      "ao_longo_cm": 35,
+      "recuo_cm": 4,
+      "centro_altura_cm": 105,
+      "inclinacao": 0,
+      "janela": {
+        "x": 3000,
+        "y": 0,
+        "w": 1920,
+        "h": 1080
+      }
+    },
+    {
+      "id": "centro_32",
+      "lado": "frente",
+      "tipo": "led",
+      "largura_cm": 39,
+      "altura_cm": 70,
+      "distancia_cm": 45,
+      "lateral_cm": 0,
+      "centro_altura_cm": 140,
+      "inclinacao": 0,
+      "janela": {
+        "x": 0,
+        "y": 0,
+        "w": 1080,
+        "h": 1920
+      },
+      "rotacao": 90
+    }
+  ],
+  "tracking": [
+    {
+      "nome": "M1",
+      "ponta": "frente",
+      "olha": "esq",
+      "altura_cm": 170,
+      "afastamento_cm": 10,
+      "yaw": null,
+      "pitch": null
+    },
+    {
+      "nome": "M2",
+      "ponta": "frente",
+      "olha": "dir",
+      "altura_cm": 170,
+      "afastamento_cm": 0,
+      "yaw": null,
+      "pitch": null
+    },
+    {
+      "nome": "M3",
+      "ponta": "fundo",
+      "olha": "esq",
+      "altura_cm": 170,
+      "afastamento_cm": 0,
+      "yaw": null,
+      "pitch": null
+    },
+    {
+      "nome": "M4",
+      "ponta": "fundo",
+      "olha": "dir",
+      "altura_cm": 170,
+      "afastamento_cm": 10,
+      "yaw": null,
+      "pitch": null
+    }
+  ],
+  "zonas": {
+    "_doc": "Distâncias medidas a partir da BORDA da mesa, para fora. 'perto' = onde a tela vira janela para quem está ali (marcar com fita no chão). 'longe' = até onde as câmeras registram. frente_cm/fundo_cm = até onde a área de circulação vai, a partir do centro da mesa.",
+    "perto_cm": 120,
+    "longe_cm": 300,
+    "frente_cm": 340,
+    "fundo_cm": 80
+  },
+  "comportamento": {
+    "_doc": "Tempos em segundos. ver_se_s: primeiros segundos a pessoa se vê ao vivo. troca_s: a cada quanto a pessoa mostrada muda. alerta_s: aviso de consumo excessivo. sair_s: quanto tempo fora da zona perto até a sessão fechar. lotacao: com tanta gente na zona perto de um lado, aquele lado vira mural. troca_dono_cm: outra pessoa precisa estar tanto mais perto para tomar a tela.",
+    "ver_se_s": 10,
+    "troca_s": 35,
+    "alerta_s": 300,
+    "sair_s": 3,
+    "lotacao": 4,
+    "troca_dono_cm": 30
+  }
+}

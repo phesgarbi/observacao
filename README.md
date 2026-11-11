@@ -1,5 +1,8 @@
 # OBSERVAÇÃO (nome provisório)
 
+> **Desde 11/11 a montagem é em ILHA, não mais em U.** Como funciona e como configurar no local: [docs/ilha.md](docs/ilha.md).
+> Resumo: `tools/configurar_ilha.py` (medidas) → `tools/calibrate_tracking.py --lado esq|dir` → `python -m observacao.render.app --mouse`.
+
 Instalação artística sobre vigilância: 5 telas em U, 15 webcams em varas como
 "olhos", espaço 3D que acompanha a cabeça de quem observa e mostra, fragmentada,
 a pessoa que observou antes. Plano completo em `docs/plano.md`.
